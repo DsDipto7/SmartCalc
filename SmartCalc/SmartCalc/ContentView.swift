@@ -1,21 +1,17 @@
-//
-//  ContentView.swift
-//  SmartCalc
-//
-//  Created by Tanmoy Biswas on 14/12/24.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    
+    @AppStorage("uid") var userID: String = ""
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        
+        if userID == "" {
+            AuthView()
         }
-        .padding()
+        else {
+            CalculatorView()
+        }
     }
 }
 

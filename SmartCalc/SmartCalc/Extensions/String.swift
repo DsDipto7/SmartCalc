@@ -1,10 +1,3 @@
-//
-//  String.swift
-//  SmartCalc
-//
-//  Created by Tanmoy Biswas on 14/12/24.
-//
-
 import Foundation
 
 extension String {
