@@ -1,7 +1,7 @@
 import SwiftUI
 import FirebaseAuth
 
-struct LoginView: View {
+struct SignupView: View {
     
     @Binding var currentShowingView: String
     
@@ -26,7 +26,7 @@ struct LoginView: View {
             
             VStack {
                 HStack {
-                    Text("SmartCalc")
+                    Text("Create an Account")
                         .font(.largeTitle)
                         .bold()
                     Spacer()
@@ -80,13 +80,11 @@ struct LoginView: View {
                 .padding()
                 
                 Button(action: {
-                    
                     withAnimation{
-                        self.currentShowingView = "signup"
+                        self.currentShowingView = "login"
                     }
-
                 }) {
-                    Text("Don't have an account ?")
+                    Text("Already have an account ?")
                         .foregroundColor(.black.opacity(0.7))
                 }
                 
@@ -95,22 +93,22 @@ struct LoginView: View {
                 
                 Button {
                     
-                    Auth.auth().signIn(withEmail: email, password: password) { authResult, error in
-                        if let error = error {
-                            print(error)
-                            return
-                          }
-                          
-                          if let authResult = authResult {
-                              print(authResult.user.uid)
-                              withAnimation{
-                                  userID = authResult.user.uid
-                              }
-                          }
+                    Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
+                      if let error = error {
+                          print(error)
+                          return
+                        }
+                        
+                        if let authResult = authResult {
+                            print(authResult.user.uid)
+                            userID = authResult.user.uid
+                        }
                     }
                     
+                    
+                    
                 } label: {
-                    Text("Sign In")
+                    Text("Create New Account")
                         .foregroundColor(.white)
                         .font(.title3)
                         .bold()
@@ -129,4 +127,3 @@ struct LoginView: View {
         
     }
 }
-
