@@ -1,9 +1,12 @@
 import SwiftUI
+import FirebaseAuth
 
 struct CalculatorView: View {
     @State private var display: String = "0"
     @State private var firstNumber: Double? = nil
     @State private var currentOperation: String? = nil
+    
+    @AppStorage("uid") var userID: String = ""
 
     let buttons = [
         ["AC", "%", "<-", "÷"],
@@ -14,6 +17,25 @@ struct CalculatorView: View {
     ]
 
     var body: some View {
+        
+        HStack{
+            Button(action: {
+                let firebaseAuth = Auth.auth()
+                
+                do {
+                    try firebaseAuth.signOut()
+                    withAnimation{
+                        userID=""
+                    }
+                }
+                catch let signOutError {
+                    print("Error signing out: \(signOutError)")
+                }
+            }) {
+                Text("Sign Out")
+            }
+        }
+        
         VStack(spacing: 10) {
             Spacer()
            
@@ -95,8 +117,4 @@ struct CalculatorView: View {
         default: return "0"
         }
     }
-}
-
-#Preview {
-    CalculatorView()
 }
