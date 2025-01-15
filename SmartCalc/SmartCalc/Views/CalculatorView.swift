@@ -2,64 +2,127 @@ import SwiftUI
 import FirebaseAuth
 
 struct CalculatorView: View {
-    @State private var display: String = "0"
-    @State private var firstNumber: Double? = nil
-    @State private var currentOperation: String? = nil
-    
+    @State private var inputSequence: String = "" // Keeps track of all inputs
+    @State private var displayResult: String = "0" // Displays the calculated result
+    @State private var isTypingNewNumber: Bool = true
+
     @AppStorage("uid") var userID: String = ""
+    @State private var showBMIView = false
+    @State private var showConverterView = false
 
     let buttons = [
         ["AC", "%", "<-", "÷"],
         ["7", "8", "9", "×"],
         ["4", "5", "6", "−"],
         ["1", "2", "3", "+"],
-        ["00", "0", ".", "="]
+        ["(", ")", "0", "="]
+    ]
+
+    let scientificButtons = [
+        ["sin", "cos", "tan", "√"],
+        ["log", "ln", "π"]
     ]
 
     var body: some View {
-        
-        HStack{
-            Button(action: {
-                let firebaseAuth = Auth.auth()
-                
-                do {
-                    try firebaseAuth.signOut()
-                    withAnimation{
-                        userID=""
-                    }
-                }
-                catch let signOutError {
-                    print("Error signing out: \(signOutError)")
-                }
-            }) {
-                Text("Sign Out")
-            }
-        }
-        
         VStack(spacing: 10) {
+            HStack {
+                Button(action: {
+                    let firebaseAuth = Auth.auth()
+                    do {
+                        try firebaseAuth.signOut()
+                        withAnimation {
+                            userID = ""
+                        }
+                    } catch let signOutError {
+                        print("Error signing out: \(signOutError)")
+                    }
+                }) {
+                    Text("Sign Out")
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color(red: 1.0, green: 0.27, blue: 0.0))
+                        .cornerRadius(10)
+                }
+
+                Spacer()
+
+                Button(action: {
+                    showBMIView = true
+                }) {
+                    Text("BMI")
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.green)
+                        .cornerRadius(10)
+                }
+                .sheet(isPresented: $showBMIView) {
+                    BMIView()
+                }
+
+                Spacer()
+
+                Button(action: {
+                    showConverterView = true
+                }) {
+                    Text("Converter")
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.green)
+                        .cornerRadius(10)
+                }
+                .sheet(isPresented: $showConverterView) {
+                    ConverterView()
+                }
+            }
+            .padding()
+
             Spacer()
-           
-            // Display
-            Text(display)
-                .font(.largeTitle)
+
+            // Display input sequence
+            Text(inputSequence)
+                .font(.title)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding()
                 .background(Color.black.opacity(0.1))
 
-            // Buttons Grid
+            // Display calculated result
+            Text("= \(displayResult)")
+                .font(.largeTitle)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding()
+                .foregroundColor(.orange)
+
             VStack(spacing: 10) {
+                ForEach(scientificButtons, id: \.self) { row in
+                    HStack(spacing: 10) {
+                        ForEach(row, id: \.self) { button in
+                            Button(action: {
+                                scientificButtonTapped(button)
+                            }) {
+                                Text(button)
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .frame(width: 70, height: 70)
+                                    .background(Color.gray)
+                                    .foregroundColor(.white)
+                                    .clipShape(Circle())
+                            }
+                        }
+                    }
+                }
+
                 ForEach(buttons, id: \.self) { row in
                     HStack(spacing: 10) {
                         ForEach(row, id: \.self) { button in
                             Button(action: {
-                                self.buttonTapped(button)
+                                buttonTapped(button)
                             }) {
                                 Text(button)
                                     .font(.title)
                                     .fontWeight(.bold)
-                                    .frame(width: 70, height: 70) // Fixed width for all buttons
+                                    .frame(width: 70, height: 70)
                                     .background(Color.black)
-                                    .foregroundColor(Color.white)
+                                    .foregroundColor(.white)
                                     .clipShape(Circle())
                             }
                         }
@@ -73,48 +136,126 @@ struct CalculatorView: View {
     func buttonTapped(_ button: String) {
         switch button {
         case "AC":
-            display = "0"
-            firstNumber = nil
-            currentOperation = nil
+            inputSequence = ""
+            displayResult = "0"
+            isTypingNewNumber = true
+
         case "<-":
-            if !display.isEmpty {
-                display.removeLast()
-                if display.isEmpty { display = "0" }
+            if !inputSequence.isEmpty {
+                inputSequence.removeLast()
             }
+
         case "%":
-            if let number = Double(display) {
-                display = String(number / 100)
+            if let value = Double(inputSequence) {
+                displayResult = formatResult(value / 100)
+                inputSequence = displayResult
             }
+
         case "÷", "×", "−", "+":
-            firstNumber = Double(display)
-            currentOperation = button
-            display = "0"
+            if inputSequence.isEmpty || (inputSequence.last?.isWhitespace ?? true) {
+                return // Prevent consecutive operators
+            }
+            inputSequence += " \(button) "
+
         case "=":
-            if let first = firstNumber, let second = Double(display), let operation = currentOperation {
-                display = performOperation(first, second, operation)
-                firstNumber = nil
-                currentOperation = nil
-            }
+            calculateResult()
+
+        case "(", ")":
+            inputSequence += button
+
         case ".":
-            if !display.contains(".") {
-                display += "."
+            if !inputSequence.contains(".") {
+                inputSequence += button
             }
+
         default:
-            if display == "0" {
-                display = button
-            } else {
-                display += button
-            }
+            inputSequence += button
         }
     }
 
-    func performOperation(_ first: Double, _ second: Double, _ operation: String) -> String {
-        switch operation {
-        case "÷": return second == 0 ? "Error" : String(first / second)
-        case "×": return String(first * second)
-        case "−": return String(first - second)
-        case "+": return String(first + second)
-        default: return "0"
+    func scientificButtonTapped(_ button: String) {
+        if button == "π" {
+            inputSequence += "\(Double.pi)"
+            displayResult = formatResult(Double.pi)
+            return
         }
+
+        inputSequence += "\(button)("
+    }
+
+    func calculateResult() {
+        var formattedEquation = inputSequence
+            .replacingOccurrences(of: "÷", with: "/")
+            .replacingOccurrences(of: "×", with: "*")
+            .replacingOccurrences(of: "−", with: "-")
+            .replacingOccurrences(of: "π", with: "\(Double.pi)")
+        
+        // Check for unbalanced parentheses
+        if !isBalancedParentheses(formattedEquation) {
+            displayResult = "Error: Unbalanced parentheses"
+            return
+        }
+        
+        formattedEquation = evaluateScientificFunctions(in: formattedEquation)
+
+        let expression = NSExpression(format: formattedEquation)
+
+        if let result = expression.expressionValue(with: nil, context: nil) as? Double {
+            displayResult = formatResult(result)
+        } else {
+            displayResult = "Error"
+        }
+    }
+
+    func isBalancedParentheses(_ expression: String) -> Bool {
+        var stack: [Character] = []
+        
+        for char in expression {
+            if char == "(" {
+                stack.append(char)
+            } else if char == ")" {
+                if stack.isEmpty || stack.last != "(" {
+                    return false
+                }
+                stack.removeLast()
+            }
+        }
+        
+        return stack.isEmpty
+    }
+
+    func evaluateScientificFunctions(in expression: String) -> String {
+        var result = expression
+
+        let functions = ["sin", "cos", "tan", "√", "log", "ln"]
+        for function in functions {
+            while let range = result.range(of: "\(function)\\([0-9\\.]+\\)", options: .regularExpression) {
+                let match = String(result[range])
+                if let number = Double(match.replacingOccurrences(of: "\(function)(", with: "").replacingOccurrences(of: ")", with: "")) {
+                    let value: Double
+                    switch function {
+                    case "sin": value = sin(number * .pi / 180)
+                    case "cos": value = cos(number * .pi / 180)
+                    case "tan": value = tan(number * .pi / 180)
+                    case "√": value = sqrt(number)
+                    case "log": value = log10(number)
+                    case "ln": value = log(number)
+                    default: value = 0
+                    }
+                    result = result.replacingOccurrences(of: match, with: "\(value)")
+                } else {
+                    displayResult = "Error: Invalid function"
+                    return "Error"
+                }
+            }
+        }
+        return result
+    }
+
+    func formatResult(_ value: Double) -> String {
+        if value.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(Int(value))
+        }
+        return String(value)
     }
 }
