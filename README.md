@@ -1,5 +1,5 @@
 # SmartCalc
-An iOS application for simple math, BMI measurement and unit onversion.
+An iOS application for simple math, BMI measurement and unit conversion.
 
 ## Features
 - User authentication
