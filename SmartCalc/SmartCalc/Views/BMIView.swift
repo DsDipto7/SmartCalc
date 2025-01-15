@@ -10,6 +10,8 @@ struct BMIView: View {
     @State private var bmiCategory: String = ""  // BMI category (Underweight, Normal, Overweight, Obese)
     @State private var bmiRecords: [BMRecord] = []
     @State private var showAlert = false
+    @State private var comparisonMessage: String = ""
+    @State private var tips: String = ""
 
     var body: some View {
         VStack(spacing: 20) {
@@ -49,6 +51,15 @@ struct BMIView: View {
                     .padding(.top, 10)
             }
 
+            Text(comparisonMessage)
+                .padding(.top, 10)
+                .foregroundColor(comparisonMessage.contains("better") ? .green : .red)
+                .font(.headline)
+
+            Text(tips)
+                .padding(.top, 10)
+                .font(.subheadline)
+
             List(bmiRecords) { record in
                 VStack(alignment: .leading) {
                     Text("BMI: \(String(format: "%.2f", record.bmi))")
@@ -86,6 +97,9 @@ struct BMIView: View {
 
         // Update the data in Firestore
         saveBMIToFirestore(age: age, height: height, weight: weight, bmi: bmi)
+
+        // Compare new BMI with previous
+        compareBMIs(newBmi: bmi)
     }
 
     func getBMICategory(_ bmi: Double) -> String {
@@ -177,6 +191,31 @@ struct BMIView: View {
                     return nil
                 } ?? []
             }
+        }
+    }
+
+    func compareBMIs(newBmi: Double) {
+        if let lastBmiRecord = bmiRecords.last {
+            let previousBmi = lastBmiRecord.bmi
+            let previousCategory = lastBmiRecord.bmiCategory
+            if previousCategory != getBMICategory(newBmi) {
+                comparisonMessage = "Your BMI category has changed from \(previousCategory) to \(getBMICategory(newBmi))."
+                tips = "Consider making adjustments to your lifestyle based on your new BMI category."
+            } else {
+                if newBmi < previousBmi {
+                    comparisonMessage = "Your BMI has improved within the \(previousCategory) category compared to your previous record."
+                    tips = "Keep up the good work by maintaining a balanced diet and regular exercise."
+                } else if newBmi > previousBmi {
+                    comparisonMessage = "Your BMI has worsened within the \(previousCategory) category compared to your previous record."
+                    tips = "Consider reviewing your diet and increasing physical activity to improve your BMI."
+                } else {
+                    comparisonMessage = "Your BMI is the same as your previous record within the \(previousCategory) category."
+                    tips = "Great! You are maintaining a healthy lifestyle. Continue to monitor your BMI regularly."
+                }
+            }
+        } else {
+            comparisonMessage = "No previous BMI records found."
+            tips = "Start tracking your BMI to monitor your health over time."
         }
     }
 }
