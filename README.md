@@ -9,7 +9,7 @@ An iOS application for simple math, BMI measurement and unit conversion.
 
 ## App Preview
 
-## Authentication
+### Authentication
 <div style="display: flex; gap: 10px;">
   <img src="images/signup.png" alt="Sign Up" width="250"/>
   <img src="images/signin.png" alt="Sign in" width="250"/>
@@ -18,13 +18,13 @@ An iOS application for simple math, BMI measurement and unit conversion.
 ### Calculator
 <img src="images/home.png" alt="Home" width="250"/>
 
-## BMI Calculation With Health Warnings
+### BMI Calculation With Health Warnings
 <div style="display: flex; gap: 10px;">
   <img src="images/bmi1.png" alt="Sign Up" width="250"/>
   <img src="images/bmi2.png" alt="Sign in" width="250"/>
 </div>
 
-## Unit Conversion
+### Unit Conversion
 <div style="display: flex; gap: 10px;">
   <img src="images/unit1.png" alt="Sign Up" width="250"/>
   <img src="images/unit2.png" alt="Sign in" width="250"/>
