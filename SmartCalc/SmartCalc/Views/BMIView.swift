@@ -5,9 +5,9 @@ import FirebaseAuth
 struct BMIView: View {
     @State private var height: String = ""
     @State private var weight: String = ""
-    @State private var age: String = ""  // New state for age
+    @State private var age: String = ""
     @State private var bmiResult: String = ""
-    @State private var bmiCategory: String = ""  // BMI category (Underweight, Normal, Overweight, Obese)
+    @State private var bmiCategory: String = ""
     @State private var bmiRecords: [BMRecord] = []
     @State private var showAlert = false
     @State private var comparisonMessage: String = ""
@@ -88,17 +88,13 @@ struct BMIView: View {
             return
         }
 
-        // BMI calculation
         let bmi = weight / (height * height)
         bmiResult = String(format: "%.2f", bmi)
 
-        // Determine BMI category based on BMI value
         bmiCategory = getBMICategory(bmi)
 
-        // Update the data in Firestore
         saveBMIToFirestore(age: age, height: height, weight: weight, bmi: bmi)
 
-        // Compare new BMI with previous
         compareBMIs(newBmi: bmi)
     }
 
@@ -123,7 +119,7 @@ struct BMIView: View {
 
         let db = Firestore.firestore()
 
-        // Check if the user already has a BMI record
+        // Check for previous BMI record
         db.collection("users").document(userID).collection("bmiRecords").getDocuments { snapshot, error in
             if let error = error {
                 print("Error fetching BMI records: \(error.localizedDescription)")
@@ -131,7 +127,7 @@ struct BMIView: View {
             }
 
             if let document = snapshot?.documents.first {
-                // If a BMI record exists, update it
+                // Update BMI record if it exists
                 db.collection("users").document(userID).collection("bmiRecords").document(document.documentID).updateData([
                     "age": age,
                     "height": height,
@@ -220,7 +216,7 @@ struct BMIView: View {
     }
 }
 
-// Define a custom struct to represent a BMI record
+// custom struct to represent a BMI record
 struct BMRecord: Identifiable, Hashable {
     var id: String
     var bmi: Double

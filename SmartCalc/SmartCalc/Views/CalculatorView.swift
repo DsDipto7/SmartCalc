@@ -2,8 +2,8 @@ import SwiftUI
 import FirebaseAuth
 
 struct CalculatorView: View {
-    @State private var inputSequence: String = "" // Keeps track of all inputs
-    @State private var displayResult: String = "0" // Displays the calculated result
+    @State private var inputSequence: String = ""
+    @State private var displayResult: String = "0"
     @State private var isTypingNewNumber: Bool = true
 
     @AppStorage("uid") var userID: String = ""
