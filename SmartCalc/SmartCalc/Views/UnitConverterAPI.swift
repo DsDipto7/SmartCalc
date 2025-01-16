@@ -30,13 +30,12 @@ class UnitConverterAPI {
                 return
             }
             
-            // Log the raw response for debugging
             if let jsonString = String(data: data, encoding: .utf8) {
                 print("Raw JSON Response: \(jsonString)")
             }
             
             do {
-                // Try decoding the success response
+               
                 if let successResponse = try? JSONDecoder().decode(ConversionResponse.self, from: data) {
                     if let result = Double(successResponse.value) {
                         completion(.success(result))
@@ -46,7 +45,7 @@ class UnitConverterAPI {
                     return
                 }
                 
-                // Try decoding the error response
+                
                 if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
                     completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: errorResponse.message])))
                     return

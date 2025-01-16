@@ -57,7 +57,6 @@ struct ConverterView: View {
             }
             .padding(.horizontal)
             
-            // TextField for input value
             TextField("Enter Value", text: $inputValue)
                 .keyboardType(.decimalPad)
                 .padding()
@@ -65,7 +64,6 @@ struct ConverterView: View {
                 .cornerRadius(10)
                 .padding(.horizontal)
             
-            // Convert button
             Button(action: {
                 convert()
             }) {
@@ -76,7 +74,6 @@ struct ConverterView: View {
                     .cornerRadius(10)
             }
             
-            // Result display
             Text("Converted Value: \(convertedValue)")
                 .font(.headline)
                 .padding()
